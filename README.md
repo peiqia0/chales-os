@@ -1,2 +1,2 @@
 # chales-os
-a hobby bootloader
+a hobby operating system/kernel
