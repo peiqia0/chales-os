@@ -5,6 +5,7 @@ a hobby operating system/kernel
 - open watcom compiler
 - nasm
 - qemu
+- Any linux/debian based system
 ## How to run
 compile the file with 
 ```
