@@ -32,12 +32,19 @@ $(ARCH_FREEOBJS) \
 stdio/printf.o \
 stdio/putchar.o \
 stdio/puts.o \
+stdio/snprintf.o \
 stdlib/abort.o \
+stdlib/malloc.o \
 string/memcmp.o \
 string/memcpy.o \
 string/memmove.o \
 string/memset.o \
 string/strlen.o \
+string/strcpy.o \
+string/strcat.o \
+string/strcmp.o \
+string/strncmp.o \
+string/strrchr.o \
 
 HOSTEDOBJS=\
 $(ARCH_HOSTEDOBJS) \

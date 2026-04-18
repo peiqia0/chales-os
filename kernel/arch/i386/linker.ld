@@ -36,6 +36,10 @@ SECTIONS
 	{
 		*(COMMON)
 		*(.bss)
+		_heap_start = .;
+		. += 64K;  /* 64K heap */
+		_heap_end = .;
+		*(.bootstrap_stack)
 	}
 
 	/* The compiler may produce other sections, put them in the proper place in

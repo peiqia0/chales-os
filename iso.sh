@@ -13,3 +13,4 @@ menuentry "myos" {
 }
 EOF
 grub-mkrescue -o myos.iso isodir
+cp myos.iso builds/0.4.1.iso
