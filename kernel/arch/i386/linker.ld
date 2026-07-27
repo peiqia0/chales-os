@@ -7,35 +7,38 @@ SECTIONS
 	.text BLOCK(4K) : ALIGN(4K)
 	{
 		*(.multiboot)
-		*(EXCLUDE_FILE(*user/main.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o*) .text)
+		*(EXCLUDE_FILE(*user/main.o* *user/shell.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o* *string/strcmp.o* *string/strlen.o*) .text)
 	}
 	.rodata BLOCK(4K) : ALIGN(4K)
 	{
-		*(EXCLUDE_FILE(*user/main.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o*) .rodata)
+		*(EXCLUDE_FILE(*user/main.o* *user/shell.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o* *string/strcmp.o* *string/strlen.o*) .rodata)
 	}
 	.data BLOCK(4K) : ALIGN(4K)
 	{
-		*(EXCLUDE_FILE(*user/main.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o*) .data)
+		*(EXCLUDE_FILE(*user/main.o* *user/shell.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o* *string/strcmp.o* *string/strlen.o*) .data)
 	}
 
 	.user BLOCK(4K) : ALIGN(4K)
 	{
 		_user_start = .;
 		user/main.o(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*)
+		user/shell.o(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*)
 		../libc/stdio/printf.o(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*)
 		../libc/stdlib/malloc.o(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*)
 		../libc/string/memcpy.o(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*)
 		../libc/string/memset.o(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*)
 		../libc/string/memmove.o(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*)
 		../libc/string/memcmp.o(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*)
+		../libc/string/strcmp.o(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*)
+		../libc/string/strlen.o(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*)
 		*(.user)
 		*(.user.*)
 		_user_end = .;
 	}
 	.bss BLOCK(4K) : ALIGN(4K)
 	{
-		*(EXCLUDE_FILE(*user/main.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o*) COMMON)
-		*(EXCLUDE_FILE(*user/main.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o*) .bss)
+		*(EXCLUDE_FILE(*user/main.o* *user/shell.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o* *string/strcmp.o* *string/strlen.o*) COMMON)
+		*(EXCLUDE_FILE(*user/main.o* *user/shell.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o* *string/strcmp.o* *string/strlen.o*) .bss)
 		_heap_start = .;
 		. += 64K;  /* 64K kernel heap (kmalloc), supervisor-only */
 		_heap_end = .;

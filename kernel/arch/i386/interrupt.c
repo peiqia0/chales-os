@@ -5,6 +5,9 @@
 #include <kernel/portio.h>
 #include <kernel/keyboard.h>
 #include <kernel/timer.h>
+#include <kernel/ramfs.h>
+#include <kernel/portio.h>
+#include <kernel/tty.h>
 
 struct interrupt_context
 {
@@ -148,6 +151,45 @@ void syscall_handler(struct interrupt_context* int_ctx)
             break;
         case 4: // sbrk
             int_ctx->eax = (uint32_t)sbrk_handler((int)arg1);
+            break;
+        case 5: // ls(path) — path may be an empty string for root
+            ramfs_ls((const char*)arg1);
+            int_ctx->eax = 0;
+            break;
+        case 6: // open(path, flags)
+            int_ctx->eax = (uint32_t)ramfs_open((const char*)arg1, (int)arg2);
+            break;
+        case 7: // close(fd)
+            int_ctx->eax = (uint32_t)ramfs_close((int)arg1);
+            break;
+        case 8: // read(fd, buf, count)
+            int_ctx->eax = (uint32_t)ramfs_read((int)arg1, (void*)arg2, (size_t)arg3);
+            break;
+        case 9: // write(fd, buf, count)
+            int_ctx->eax = (uint32_t)ramfs_write((int)arg1, (const void*)arg2, (size_t)arg3);
+            break;
+        case 10: // mkdir(path)
+            int_ctx->eax = (uint32_t)ramfs_mkdir((const char*)arg1);
+            break;
+        case 11: // unlink(path)
+            int_ctx->eax = (uint32_t)ramfs_unlink((const char*)arg1);
+            break;
+        case 14: // rmdir(path)
+            int_ctx->eax = (uint32_t)ramfs_rmdir((const char*)arg1);
+            break;
+        case 12: // clear_screen
+            terminal_initialize();
+            int_ctx->eax = 0;
+            break;
+        case 13:
+            while (inport8(0x64) & 0x02) {
+                // wait for the controller's input buffer to be clear
+            }
+            outport8(0x64, 0xFE);
+            for (;;) {
+                // if the reset didn't take for some reason, just halt
+                asm volatile("hlt");
+            }
             break;
         default:
             printk("[SYSCALL] unknown syscall %lu\n", (unsigned long)syscall_num);

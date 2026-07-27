@@ -49,12 +49,7 @@ static inline unsigned long _syscall_get_ticks(void)
     return ticks;
 }
 
-/* Grows (or shrinks, if increment is negative — not currently supported by
- * the kernel side) the calling process's heap by `increment` bytes.
- * Returns the *previous* break (i.e. the start of the newly-allocated
- * region) on success, or (void*)-1 if the kernel refused (heap exhausted).
- * Standard sbrk() semantics, minus negative increments for now.
- */
+
 static inline void* _syscall_sbrk(int increment)
 {
     void* prev_brk;
@@ -65,6 +60,122 @@ static inline void* _syscall_sbrk(int increment)
         : "memory"
     );
     return prev_brk;
+}
+
+
+static inline void _syscall_ls(const char* path)
+{
+    asm volatile (
+        "int $0x80\n\t"
+        :
+        : "a"(5), "b"(path)
+        : "memory"
+    );
+}
+
+static inline int _syscall_open(const char* path, int flags)
+{
+    int fd;
+    asm volatile (
+        "int $0x80\n\t"
+        : "=a"(fd)
+        : "a"(6), "b"(path), "c"(flags)
+        : "memory"
+    );
+    return fd;
+}
+
+static inline int _syscall_close(int fd)
+{
+    int ret;
+    asm volatile (
+        "int $0x80\n\t"
+        : "=a"(ret)
+        : "a"(7), "b"(fd)
+        : "memory"
+    );
+    return ret;
+}
+
+static inline int _syscall_read(int fd, void* buf, unsigned int count)
+{
+    int ret;
+    asm volatile (
+        "int $0x80\n\t"
+        : "=a"(ret)
+        : "a"(8), "b"(fd), "c"(buf), "d"(count)
+        : "memory"
+    );
+    return ret;
+}
+
+static inline int _syscall_write(int fd, const void* buf, unsigned int count)
+{
+    int ret;
+    asm volatile (
+        "int $0x80\n\t"
+        : "=a"(ret)
+        : "a"(9), "b"(fd), "c"(buf), "d"(count)
+        : "memory"
+    );
+    return ret;
+}
+
+static inline int _syscall_mkdir(const char* path)
+{
+    int ret;
+    asm volatile (
+        "int $0x80\n\t"
+        : "=a"(ret)
+        : "a"(10), "b"(path)
+        : "memory"
+    );
+    return ret;
+}
+
+static inline int _syscall_rmdir(const char* path)
+{
+    int ret;
+    asm volatile (
+        "int $0x80\n\t"
+        : "=a"(ret)
+        : "a"(14), "b"(path)
+        : "memory"
+    );
+    return ret;
+}
+
+static inline int _syscall_unlink(const char* path)
+{
+    int ret;
+    asm volatile (
+        "int $0x80\n\t"
+        : "=a"(ret)
+        : "a"(11), "b"(path)
+        : "memory"
+    );
+    return ret;
+}
+
+static inline void _syscall_clear(void)
+{
+    asm volatile (
+        "int $0x80\n\t"
+        :
+        : "a"(12)
+        : "memory"
+    );
+}
+
+/* Does not return. */
+static inline void _syscall_reboot(void)
+{
+    asm volatile (
+        "int $0x80\n\t"
+        :
+        : "a"(13)
+        : "memory"
+    );
 }
 
 #endif
