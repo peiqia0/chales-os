@@ -2,11 +2,32 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 
 ramfs_inode_t ramfs_inodes[RAMFS_MAX_FILES];
 static ramfs_fd_t ramfs_file_descriptors[32];
 uint32_t ramfs_next_inode = 1;
 static uint32_t ramfs_root_ino = 0;
+
+static void ramfs_populate(void)
+{
+    int fd;
+
+    // Make a programs directory
+    ramfs_mkdir("/bin");
+}
+
+static void ramfs_add_binary(const char *path,
+                             const void *data,
+                             size_t size)
+{
+    int fd = ramfs_open(path, 1);
+
+    if (fd >= 0) {
+        ramfs_write(fd, data, size);
+        ramfs_close(fd);
+    }
+}
 
 /* Initialize RAMFS */
 void ramfs_init(void)
@@ -23,7 +44,7 @@ void ramfs_init(void)
 
     ramfs_root_ino = 0;
     ramfs_next_inode = 1;
-
+    ramfs_populate();
     printk("[ramfs] initialized (root inode: %lu)\n", (unsigned long)ramfs_root_ino);
 }
 
@@ -370,7 +391,12 @@ void ramfs_ls(const char *path)
     for (uint32_t i = 0; i < RAMFS_MAX_FILES; i++) {
         if (ramfs_inodes[i].ino != 0 && ramfs_inodes[i].parent_ino == ramfs_inodes[parent_ino].ino) {
             const char *type = ramfs_inodes[i].type == RAMFS_TYPE_DIR ? "DIR" : "FILE";
-            printk("  [%s] %s (%lu bytes)\n", type, ramfs_inodes[i].name, (unsigned long)ramfs_inodes[i].size);
+            if (type == "DIR") {
+                printk("  %s/\n", ramfs_inodes[i].name);
+                continue;
+            } else if (type == "FILE") {
+                printk("  %s (%lu bytes)\n", ramfs_inodes[i].name, (unsigned long)ramfs_inodes[i].size);
+            }
         }
     }
 }

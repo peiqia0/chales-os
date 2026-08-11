@@ -50,4 +50,3 @@ void kernel_main(void)
     // Test Ring 3 user mode
     enter_user_mode();
 }
-

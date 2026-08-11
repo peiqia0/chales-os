@@ -1,7 +1,7 @@
 #include <stddef.h>
-#include <stdio.h>
 #include <syscalls.h>
 #include <kernel/shell.h>
+#include <stdint.h>
 
 void user_main(void)
 {

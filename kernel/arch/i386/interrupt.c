@@ -174,14 +174,32 @@ void syscall_handler(struct interrupt_context* int_ctx)
         case 11: // unlink(path)
             int_ctx->eax = (uint32_t)ramfs_unlink((const char*)arg1);
             break;
-        case 14: // rmdir(path)
+        case 12: // rmdir(path)
             int_ctx->eax = (uint32_t)ramfs_rmdir((const char*)arg1);
             break;
-        case 12: // clear_screen
+        case 13: // clear_screen
             terminal_initialize();
             int_ctx->eax = 0;
             break;
-        case 13:
+        case 14: // outport8
+            int_ctx->eax = outport8((uint16_t)arg1, (uint8_t)arg2);
+            break;
+        case 15: // outport16
+            int_ctx->eax = outport16((uint16_t)arg1, (uint16_t)arg2);
+            break;
+        case 16: // outport32
+            int_ctx->eax = outport32((uint16_t)arg1, (uint32_t)arg2);
+            break;
+        case 17: // inport8
+            int_ctx->eax = inport8((uint16_t)arg1);
+            break;
+        case 18: // inport16
+            int_ctx->eax = inport16((uint16_t)arg1);
+            break;
+        case 19: // inport32
+            int_ctx->eax = inport32((uint16_t)arg1);
+            break;
+        case 20: // reset
             while (inport8(0x64) & 0x02) {
                 // wait for the controller's input buffer to be clear
             }

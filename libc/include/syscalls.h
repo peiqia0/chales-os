@@ -37,6 +37,78 @@ static inline void _syscall_exit(int code)
     );
 }
 
+static inline int _syscall_outport8(uint16_t port, uint8_t value)
+{
+    int result;
+    asm volatile (
+        "int $0x80\n\t"
+        : "=a"(result)
+        : "a"(14), "b"(port), "c"(value)
+        : "memory"
+    );
+    return result;
+}
+
+static inline int _syscall_outport16(uint16_t port, uint16_t value)
+{
+    int result;
+    asm volatile (
+        "int $0x80\n\t"
+        : "=a"(result)
+        : "a"(15), "b"(port), "c"(value)
+        : "memory"
+    );
+    return result;
+}
+
+static inline int _syscall_outport32(uint16_t port, uint32_t value)
+{
+    int result;
+    asm volatile (
+        "int $0x80\n\t"
+        : "=a"(result)
+        : "a"(16), "b"(port), "c"(value)
+        : "memory"
+    );
+    return result;
+}
+
+static inline uint8_t _syscall_inport8(uint16_t port)
+{
+    int result;
+    asm volatile (
+        "int $0x80\n\t"
+        : "=a"(result)
+        : "a"(17), "b"(port)
+        : "memory"
+    );
+    return result;
+}
+
+static inline uint16_t _syscall_inport16(uint16_t port)
+{
+    int result;
+    asm volatile (
+        "int $0x80\n\t"
+        : "=a"(result)
+        : "a"(18), "b"(port)
+        : "memory"
+    );
+    return result;
+}
+
+static inline uint32_t _syscall_inport32(uint16_t port)
+{
+    int result;
+    asm volatile (
+        "int $0x80\n\t"
+        : "=a"(result)
+        : "a"(19), "b"(port)
+        : "memory"
+    );
+    return result;
+}
+
 static inline unsigned long _syscall_get_ticks(void)
 {
     unsigned long ticks;
@@ -139,7 +211,7 @@ static inline int _syscall_rmdir(const char* path)
     asm volatile (
         "int $0x80\n\t"
         : "=a"(ret)
-        : "a"(14), "b"(path)
+        : "a"(12), "b"(path)
         : "memory"
     );
     return ret;
@@ -162,7 +234,7 @@ static inline void _syscall_clear(void)
     asm volatile (
         "int $0x80\n\t"
         :
-        : "a"(12)
+        : "a"(13)
         : "memory"
     );
 }
@@ -173,7 +245,7 @@ static inline void _syscall_reboot(void)
     asm volatile (
         "int $0x80\n\t"
         :
-        : "a"(13)
+        : "a"(20)
         : "memory"
     );
 }

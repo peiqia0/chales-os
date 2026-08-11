@@ -35,7 +35,7 @@ _start:
 	# tss.esp0 is at offset 4 from tss base
 	movl $kernel_stack_top, %eax
 	movl %eax, tss + 4
-	
+
 	# Finish installing the Task Switch Segment into the Global Descriptor Table.
 	movl $tss, %ecx
 	movw %cx, gdt + 0x28 + 2
