@@ -1,5 +1,3 @@
-/* The bootloader will look at this image and start execution at the symbol
-   designated at the entry point. */
 ENTRY(_start)
 SECTIONS
 {
@@ -7,22 +5,20 @@ SECTIONS
 	.text BLOCK(4K) : ALIGN(4K)
 	{
 		*(.multiboot)
-		*(EXCLUDE_FILE(*user/main.o* *user/shell.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o* *string/strcmp.o* *string/strlen.o*) .text)
-	}
+		*(EXCLUDE_FILE(*user/*.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o* *string/strcmp.o* *string/strlen.o*) .text)	}
 	.rodata BLOCK(4K) : ALIGN(4K)
 	{
-		*(EXCLUDE_FILE(*user/main.o* *user/shell.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o* *string/strcmp.o* *string/strlen.o*) .rodata)
+		*(EXCLUDE_FILE(*user/*.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o* *string/strcmp.o* *string/strlen.o*) .rodata)
 	}
 	.data BLOCK(4K) : ALIGN(4K)
 	{
-		*(EXCLUDE_FILE(*user/main.o* *user/shell.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o* *string/strcmp.o* *string/strlen.o*) .data)
+		*(EXCLUDE_FILE(*user/*.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o* *string/strcmp.o* *string/strlen.o*) .data)
 	}
 
 	.user BLOCK(4K) : ALIGN(4K)
 	{
 		_user_start = .;
-		user/main.o(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*)
-		user/shell.o(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*)
+		user/*.o(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*)
 		../libc/stdio/printf.o(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*)
 		../libc/stdlib/malloc.o(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*)
 		../libc/string/memcpy.o(.text .text.* .rodata .rodata.* .data .data.* .bss .bss.*)
@@ -37,8 +33,8 @@ SECTIONS
 	}
 	.bss BLOCK(4K) : ALIGN(4K)
 	{
-		*(EXCLUDE_FILE(*user/main.o* *user/shell.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o* *string/strcmp.o* *string/strlen.o*) COMMON)
-		*(EXCLUDE_FILE(*user/main.o* *user/shell.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o* *string/strcmp.o* *string/strlen.o*) .bss)
+		*(EXCLUDE_FILE(*user/*.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o* *string/strcmp.o* *string/strlen.o*) COMMON)
+		*(EXCLUDE_FILE(*user/*.o* *printf.o* *stdlib/malloc.o* *string/memcpy.o* *string/memset.o* *string/memmove.o* *string/memcmp.o* *string/strcmp.o* *string/strlen.o*) .bss)
 		_heap_start = .;
 		. += 64K;  /* 64K kernel heap (kmalloc), supervisor-only */
 		_heap_end = .;
