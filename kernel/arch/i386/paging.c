@@ -77,7 +77,24 @@ void paging_initialize(void)
     uint32_t pt_phys = (uint32_t)((uintptr_t)page_table0);
     page_directory[0] = pt_phys | PTE_P | PTE_RW | PTE_USER;
 }
+void paging_map_user_range(uint32_t start_addr, uint32_t end_addr)
+{
+    if (end_addr <= start_addr) {
+        return;
+    }
 
+    uint32_t page = page_index(start_addr);
+    uint32_t last_page = page_index(end_addr - 1);
+
+    if (last_page >= 1024) {
+        last_page = 1023;
+    }
+
+    for (; page <= last_page; page++) {
+        uint32_t phys = (uint32_t)(page * 0x1000);
+        page_table0[page] = phys | PTE_P | PTE_RW | PTE_USER;
+    }
+}
 void paging_enable(void)
 {
     uint32_t pd_phys = (uint32_t)((uintptr_t)page_directory);

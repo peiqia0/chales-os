@@ -8,6 +8,8 @@
 #include <kernel/ramfs.h>
 #include <kernel/portio.h>
 #include <kernel/tty.h>
+#include <kernel/elf.h>
+
 
 struct interrupt_context
 {
@@ -208,6 +210,11 @@ void syscall_handler(struct interrupt_context* int_ctx)
                 // if the reset didn't take for some reason, just halt
                 asm volatile("hlt");
             }
+            break;
+        case 21: // exec
+            printk("[SYSCALL] exec(\"%s\")\n", (const char*)arg1);
+            elf_exec_file((const char*)arg1);
+            int_ctx->eax = (uint32_t)-1;
             break;
         default:
             printk("[SYSCALL] unknown syscall %lu\n", (unsigned long)syscall_num);

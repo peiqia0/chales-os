@@ -2,6 +2,7 @@ ENTRY(_start)
 SECTIONS
 {
 	. = 1M;
+	_kernel_start = .;
 	.text BLOCK(4K) : ALIGN(4K)
 	{
 		*(.multiboot)
@@ -44,5 +45,6 @@ SECTIONS
 		_user_heap_end = .;
 		*(.bootstrap_stack)
 		*(.kernel_stack)
+		_kernel_end = .;
 	}
 }

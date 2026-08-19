@@ -30,6 +30,7 @@ static int cmd_rmdir(int argc, char* argv[]);
 static int cmd_rm(int argc, char* argv[]);
 static int cmd_uname(int argc, char* argv[]);
 static int cmd_reboot(int argc, char* argv[]);
+static int cmd_exec(int argc, char* argv[]);
 
 static shell_cmd_entry_t commands[] = {
     {"help",   cmd_help,   "Show available commands"},
@@ -44,6 +45,7 @@ static shell_cmd_entry_t commands[] = {
     {"rm",     cmd_rm,     "Delete a file"},
     {"uname",  cmd_uname,  "Display system information"},
     {"reboot", cmd_reboot, "Reboot the system"},
+    {"exec",   cmd_exec,   "Load and run an ELF binary"},
     {NULL, NULL, NULL}
 };
 
@@ -214,6 +216,20 @@ static int cmd_reboot(int argc, char* argv[])
     printf("Rebooting...\n");
     _syscall_reboot(); // does not return
     return 0;
+}
+
+static int cmd_exec(int argc, char* argv[])
+{
+    if (argc < 2) {
+        printf("Usage: exec <path>\n");
+        return 1;
+    }
+
+    /* On success this never returns to us — control passes straight to
+     * the loaded program in ring 3. We only get here on failure. */
+    _syscall_exec(argv[1]);
+    printf("exec: failed to run '%s'\n", argv[1]);
+    return 1;
 }
 
 

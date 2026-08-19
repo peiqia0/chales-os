@@ -9,6 +9,7 @@ This is a a hobby os based on the osdev wiki for the i386 architecture. This pro
 - Heap allocator — malloc/free with a simple first-fit allocator
 - RAMFS — in-memory filesystem supporting files and directories
 - Interactive shell — command-line interface with built-in commands
+- ELF executable loader — load and runs elf binaries
 ## Shell Commands
 
 | Command | Description |

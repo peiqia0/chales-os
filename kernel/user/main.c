@@ -2,7 +2,7 @@
 #include <syscalls.h>
 #include <kernel/shell.h>
 #include <stdint.h>
-//hoock test
+
 void user_main(void)
 {
     shell_run();

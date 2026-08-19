@@ -3,11 +3,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <kernel/hello_elf.h>
 
 ramfs_inode_t ramfs_inodes[RAMFS_MAX_FILES];
 static ramfs_fd_t ramfs_file_descriptors[32];
 uint32_t ramfs_next_inode = 1;
 static uint32_t ramfs_root_ino = 0;
+static void ramfs_add_binary(const char *path, const void *data, size_t size);
 
 static void ramfs_populate(void)
 {
@@ -15,11 +17,10 @@ static void ramfs_populate(void)
 
     // Make a programs directory
     ramfs_mkdir("/bin");
+    ramfs_add_binary("/bin/hello", hello_elf, hello_elf_len);
 }
 
-static void ramfs_add_binary(const char *path,
-                             const void *data,
-                             size_t size)
+static void ramfs_add_binary(const char *path, const void *data, size_t size)
 {
     int fd = ramfs_open(path, 1);
 
