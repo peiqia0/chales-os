@@ -7,6 +7,8 @@
 #define SHELL_BUFFER_SIZE 256
 #define SHELL_MAX_ARGS 16
 #define CAT_BUF_SIZE 256
+#define BIN_PATH_PREFIX "bin/"
+#define BIN_PATH_MAX (SHELL_BUFFER_SIZE + sizeof(BIN_PATH_PREFIX))
 
 static char shell_input_buffer[SHELL_BUFFER_SIZE];
 
@@ -287,6 +289,7 @@ static int shell_parse_command(char* line, char* argv[], int max_args)
     return argc;
 }
 
+
 static int shell_execute_command(int argc, char* argv[])
 {
     if (argc == 0) {
@@ -299,10 +302,31 @@ static int shell_execute_command(int argc, char* argv[])
         }
     }
 
-    printf("Unknown command: %s\n", argv[0]);
-    return 127;
-}
+    /* Not a built-in — try loading it as an ELF binary from bin/. */
+    size_t name_len = strlen(argv[0]);
+    if (name_len + sizeof(BIN_PATH_PREFIX) > BIN_PATH_MAX) {
+        printf("Unknown command: %s\n", argv[0]);
+        return 127;
+    }
 
+    char path[BIN_PATH_MAX];
+    size_t pos = 0;
+
+    for (const char* p = BIN_PATH_PREFIX; *p; p++) {
+        path[pos++] = *p;
+    }
+    for (size_t i = 0; i < name_len; i++) {
+        path[pos++] = argv[0][i];
+    }
+    path[pos] = '\0';
+
+    int ret = _syscall_exec(path);
+    if (ret != 0) {
+        printf("Unknown command: %s\n", argv[0]);
+        return 127;
+    }
+    return 0;
+}
 void shell_run(void)
 {
     printf("\nchales-os shell\n");

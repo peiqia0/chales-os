@@ -9,7 +9,7 @@
 #include <kernel/portio.h>
 #include <kernel/tty.h>
 #include <kernel/elf.h>
-
+#include <kernel/usermode.h>
 
 struct interrupt_context
 {
@@ -135,7 +135,7 @@ void syscall_handler(struct interrupt_context* int_ctx)
     switch (syscall_num) {
         case 0: // exit
             printk("[SYSCALL] exit(%lu)\n", (unsigned long)arg1);
-            for(;;); // Halt the system for now
+            enter_user_mode();
             break;
         case 1: // putchar
             putchar((int)arg1);
