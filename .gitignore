@@ -4,3 +4,4 @@ sysroot
 *.a
 *.o
 *.d
+*.kernel

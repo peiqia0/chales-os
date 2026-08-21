@@ -1,13 +1,6 @@
 #include <syscalls.h>
 #include "ulib.h"
 
-/* Drives the PC speaker directly through the raw port-I/O syscalls
- * (_syscall_outport8/_syscall_inport8) — the classic PIT channel 2 +
- * speaker gate trick. Demonstrates that a loaded ELF can do real
- * hardware I/O, not just talk to ramfs/tty through higher-level
- * syscalls. This only makes sound under QEMU with audio enabled (or on
- * real hardware) — headless/CI runs will just see the print output. */
-
 #define PIT_CHANNEL2 0x42
 #define PIT_COMMAND  0x43
 #define PIT_FREQ_HZ  1193182u
