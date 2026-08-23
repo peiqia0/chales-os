@@ -60,6 +60,10 @@ Alternatively, boot the pre-built ISO directly:
 ```sh
 qemu-system-i386 -cdrom builds/0.4.1.iso
 ```
+## Plans
+- graphics
+- real file system
+- usb
 
 ## License
 
