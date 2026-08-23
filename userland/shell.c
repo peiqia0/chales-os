@@ -33,6 +33,7 @@ static int cmd_rm(int argc, char* argv[]);
 static int cmd_uname(int argc, char* argv[]);
 static int cmd_reboot(int argc, char* argv[]);
 static int cmd_exec(int argc, char* argv[]);
+static int cmd_exit(int argc, char* argv[]);
 
 static shell_cmd_entry_t commands[] = {
     {"help",   cmd_help,   "Show available commands"},
@@ -48,6 +49,7 @@ static shell_cmd_entry_t commands[] = {
     {"uname",  cmd_uname,  "Display system information"},
     {"reboot", cmd_reboot, "Reboot the system"},
     {"exec",   cmd_exec,   "Load and run an ELF binary"},
+    {"exit",   cmd_exit,   "Exit the shell"},
     {NULL, NULL, NULL}
 };
 
@@ -289,6 +291,11 @@ static int shell_parse_command(char* line, char* argv[], int max_args)
     return argc;
 }
 
+static int cmd_exit(int argc, char* argv[])
+{
+    _syscall_exit(0);
+    return 0;
+}
 
 static int shell_execute_command(int argc, char* argv[])
 {
@@ -327,7 +334,7 @@ static int shell_execute_command(int argc, char* argv[])
     }
     return 0;
 }
-void shell_run(void)
+void _start(void)
 {
     printf("\nchales-os shell\n");
     printf("Type 'help' for available commands\n\n");

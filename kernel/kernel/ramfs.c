@@ -20,6 +20,7 @@ static void ramfs_populate(void)
     ramfs_add_binary("/bin/hello", hello_elf, hello_elf_len);
     ramfs_add_binary("/bin/uptime", uptime_elf, uptime_elf_len);
     ramfs_add_binary("/bin/beep", beep_elf, beep_elf_len);
+    ramfs_add_binary("/bin/shell", shell_elf, shell_elf_len);
 }
 
 static void ramfs_add_binary(const char *path, const void *data, size_t size)

@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 
 struct tss_entry
 {
@@ -88,3 +89,18 @@ struct gdt_entry gdt[] =
 };
 
 uint16_t gdt_size_minus_one = sizeof(gdt) - 1;
+
+void tss_set_kernel_stack(uint32_t esp0)
+{
+    tss.esp0 = esp0;
+}
+void gdt_set_tss_base(void)
+{
+    uintptr_t base = (uintptr_t)&tss;
+    uint32_t limit = sizeof(tss) - 1;
+
+    gdt[5].base_low    = (base) & 0xFFFF;
+    gdt[5].base_middle = (base >> 16) & 0xFF;
+    gdt[5].base_high   = (base >> 24) & 0xFF;
+    gdt[5].limit_low   = limit & 0xFFFF;
+}

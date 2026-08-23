@@ -10,7 +10,9 @@
 #include <kernel/tty.h>
 #include <kernel/elf.h>
 #include <kernel/usermode.h>
-
+#include <kernel/sched.h>
+#include "../arch/i386/paging.h"
+#include <kernel/kmalloc.h>
 struct interrupt_context
 {
 	uint32_t cr2;
@@ -85,6 +87,7 @@ void irq_handler(struct interrupt_context* int_ctx)
     } else if (irq == 0) {
         // Timer interrupt (PIT IRQ 0)
         timer_tick();
+        // schedule();
     }
 
     // Send EOI
@@ -134,8 +137,7 @@ void syscall_handler(struct interrupt_context* int_ctx)
 
     switch (syscall_num) {
         case 0: // exit
-            printk("[SYSCALL] exit(%lu)\n", (unsigned long)arg1);
-            enter_user_mode();
+            sched_task_kill(current_task);
             break;
         case 1: // putchar
             putchar((int)arg1);
@@ -212,10 +214,38 @@ void syscall_handler(struct interrupt_context* int_ctx)
             }
             break;
         case 21: // exec
+        {
             printk("[SYSCALL] exec(\"%s\")\n", (const char*)arg1);
-            elf_exec_file((const char*)arg1);
-            int_ctx->eax = (uint32_t)-1;
+            static uint8_t image[RAMFS_MAX_FILESIZE];
+            uint32_t entry;
+            int fd = ramfs_open((const char*)arg1, 0);
+            if (fd < 0) {
+                int_ctx->eax = (uint32_t)-1;
+                break;
+            }
+            size_t total = 0;
+            int n;
+            while (total < sizeof(image) &&
+                   (n = ramfs_read(fd, image + total, sizeof(image) - total)) > 0) {
+                total += (size_t)n;
+            }
+            ramfs_close(fd);
+            printk("[exec] read %lu bytes from '%s'\n", (unsigned long)total, (const char*)arg1);
+            if (elf_load(image, total, &entry) != 0) {
+                int_ctx->eax = (uint32_t)-1;
+                break;
+            }
+            printk("[exec] elf_load ok, entry=0x%lx\n", (unsigned long)entry);
+            #define USER_STACK_TOP  0x2FF000
+            #define USER_STACK_SIZE 0x4000
+            paging_map_user_range(USER_STACK_TOP - USER_STACK_SIZE, USER_STACK_TOP);
+            uint32_t *stack = kmalloc(4096);
+
+            task_t *task = kmalloc(sizeof(task_t));
+            sched_task_create(entry, USER_STACK_TOP);
+            int_ctx->eax = 0;
             break;
+        }
         default:
             printk("[SYSCALL] unknown syscall %lu\n", (unsigned long)syscall_num);
             break;

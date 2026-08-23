@@ -20,10 +20,13 @@ static kmalloc_metadata_t* heap_ptr = NULL;
 
 static void kmalloc_init(void)
 {
-	if (heap_base == NULL) {
-		heap_base = (kmalloc_metadata_t*) &_heap_start;
-		heap_ptr = heap_base;
-	}
+    if (heap_base == NULL) {
+        heap_base = (kmalloc_metadata_t*)&_heap_start;
+        heap_base->size = 0;
+        heap_base->magic = KMALLOC_MAGIC;
+        heap_base->is_free = 0;
+        heap_ptr = heap_base;
+    }
 }
 static kmalloc_metadata_t* next_block(kmalloc_metadata_t* block)
 {
@@ -54,19 +57,19 @@ static kmalloc_metadata_t* prev_block(kmalloc_metadata_t* block)
 static kmalloc_metadata_t* find_free_block(size_t size)
 {
 	kmalloc_metadata_t* block = heap_base;
-	
+
 	while ((char*)block < &_heap_end) {
 		if (block->magic != KMALLOC_MAGIC) {
 			return NULL;
 		}
-		
+
 		if (block->is_free && block->size >= size) {
 			return block;
 		}
-		
+
 		block = (kmalloc_metadata_t*)((char*)(block + 1) + block->size);
 	}
-	
+
 	return NULL;
 }
 static void coalesce(kmalloc_metadata_t* block)
@@ -98,12 +101,12 @@ static kmalloc_metadata_t* expand_heap(size_t size)
 	if (next_block + KMALLOC_METADATA_SIZE + size > &_heap_end) {
 		return NULL;
 	}
-	
+
 	kmalloc_metadata_t* new_block = (kmalloc_metadata_t*)(next_block);
 	new_block->size = size;
 	new_block->magic = KMALLOC_MAGIC;
 	new_block->is_free = 0;
-	
+
 	heap_ptr = new_block;
 	return new_block;
 }
@@ -113,11 +116,11 @@ void* kmalloc(size_t size)
 	if (size == 0) {
 		return NULL;
 	}
-	
+
 	kmalloc_init();
-	
+
 	kmalloc_metadata_t* block = find_free_block(size);
-	
+
 	if (block == NULL) {
 		block = expand_heap(size);
 		if (block == NULL) {
@@ -126,7 +129,7 @@ void* kmalloc(size_t size)
 	} else {
 		block->is_free = 0;
 	}
-	
+
 	return (void*)(block + 1);
 }
 
@@ -153,31 +156,31 @@ void* krealloc(void* ptr, size_t size)
 		kfree(ptr);
 		return NULL;
 	}
-	
+
 	if (ptr == NULL) {
 		return kmalloc(size);
 	}
-	
+
 	kmalloc_init();
-	
+
 	kmalloc_metadata_t* block = (kmalloc_metadata_t*)ptr - 1;
-	
+
 	if (block->magic != KMALLOC_MAGIC) {
 		return NULL;
 	}
-	
+
 	if (block->size >= size) {
 		return ptr;
 	}
-	
+
 	void* new_ptr = kmalloc(size);
 	if (new_ptr == NULL) {
 		return NULL;
 	}
-	
+
 	memcpy(new_ptr, ptr, block->size);
-	
+
 	kfree(ptr);
-	
+
 	return new_ptr;
 }

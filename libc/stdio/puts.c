@@ -1,5 +1,6 @@
 #include <stdio.h>
 
 int puts(const char* string) {
-	return printk("%s\n", string);
+    int written = printf("%s\n", string);
+    return written;
 }

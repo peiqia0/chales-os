@@ -1,5 +1,5 @@
 #include <syscalls.h>
-#include "ulib.h"
+#include <stdio.h>
 
 #define PIT_CHANNEL2 0x42
 #define PIT_COMMAND  0x43
@@ -28,12 +28,14 @@ static void speaker_off(void)
 
 void _start(void)
 {
-    uprint("beep: 880Hz for ~30 ticks...\n");
+    printf("beep: 880Hz for 30 ticks...\n");
 
     speaker_on(880);
-    usleep_ticks(30);
+    unsigned long start = _syscall_get_ticks();
+    while (_syscall_get_ticks() - start < 30) {
+    }
     speaker_off();
 
-    uprint("beep: done.\n");
+    printf("beep: done.\n");
     _syscall_exit(0);
 }

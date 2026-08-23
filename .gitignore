@@ -5,3 +5,4 @@ sysroot
 *.o
 *.d
 *.kernel
+*.log

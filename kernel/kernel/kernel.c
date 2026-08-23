@@ -9,11 +9,15 @@
 #include <kernel/timer.h>
 #include <kernel/ramfs.h>
 #include <kernel/usermode.h>
+#include <kernel/sched.h>
 
 #include "../arch/i386/idt.h"
 #include "../arch/i386/pic.h"
 #include "../arch/i386/paging.h"
 
+extern void gdt_set_tss_base(void);
+extern uint8_t stack_bottom[];
+extern uint8_t stack_top[];
 
 void kernel_early(void)
 {
@@ -22,6 +26,8 @@ void kernel_early(void)
 
 void kernel_main(void)
 {
+
+
 
     printk("[IDT] initializing\n");
     idt_initialize();
@@ -45,8 +51,18 @@ void kernel_main(void)
     asm volatile("sti");
 
     printk("[KERNEL] initialization complete\n");
+    printk("[sched] initializing\n");
 
     ramfs_init();
-    // Test Ring 3 user mode
+
+    gdt_set_tss_base();
+    static task_t task0;
+
+    task0.state = TASK_RUNNING;
+    task0.next = &task0;
+    task0.stack = (uint32_t*)stack_bottom;
+    task0.stack_size = (uint32_t)(stack_top - stack_bottom);
+    sched_init(&task0);
+
     enter_user_mode();
 }

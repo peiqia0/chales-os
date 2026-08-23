@@ -31,7 +31,6 @@ $(KERNEL_ARCH_OBJS) \
 kernel/kernel.o \
 kernel/ramfs.o \
 user/main.o \
-user/shell.o \
 ../libc/stdio/printf.o \
 ../libc/stdlib/malloc.o \
 ../libc/string/memcpy.o \
