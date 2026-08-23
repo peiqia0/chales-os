@@ -10,7 +10,7 @@ This is a a hobby os based on the osdev wiki for the i386 architecture. This pro
 - RAMFS — in-memory filesystem supporting files and directories
 - Interactive shell — command-line interface with built-in commands
 - ELF executable loader — load and runs elf binaries
-- scheduler - Simple round robin scheduler to make multitasking possible
+- Scheduler - Simple round robin scheduler to make multitasking possible
 ## Shell Commands
 
 | Command | Description |
