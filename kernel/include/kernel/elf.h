@@ -13,7 +13,7 @@ typedef uint32_t Elf32_Word;   // Unsigned int
 typedef int32_t  Elf32_Sword;  // Signed int
 
 #define EI_NIDENT 16
-
+uint32_t elf_build_user_stack(uint32_t stack_base, uint32_t stack_top, char **argv, char **envp);
 typedef struct {
     uint8_t    e_ident[EI_NIDENT];
     Elf32_Half e_type;

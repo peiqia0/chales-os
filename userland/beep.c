@@ -26,8 +26,10 @@ static void speaker_off(void)
     _syscall_outport8(SPEAKER_PORT, tmp & 0xFC);
 }
 
-void _start(void)
+int main(int argc, char *argv[])
 {
+    (void)argc;
+    (void)argv;
     printf("beep: 880Hz for 30 ticks...\n");
 
     speaker_on(880);
@@ -37,5 +39,5 @@ void _start(void)
     speaker_off();
 
     printf("beep: done.\n");
-    _syscall_exit(0);
+    return 0;
 }

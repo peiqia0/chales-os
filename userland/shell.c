@@ -225,13 +225,17 @@ static int cmd_reboot(int argc, char* argv[])
 static int cmd_exec(int argc, char* argv[])
 {
     if (argc < 2) {
-        printf("Usage: exec <path>\n");
+        printf("Usage: exec <path> [<arg>...]\n");
         return 1;
     }
 
-    /* On success this never returns to us — control passes straight to
-     * the loaded program in ring 3. We only get here on failure. */
-    _syscall_exec(argv[1]);
+    char *new_argv[argc];
+    for (int i = 1; i < argc; i++) {
+        new_argv[i - 1] = argv[i];
+    }
+    new_argv[argc - 1] = NULL;
+
+    _syscall_execv(argv[1], new_argv, NULL);
     printf("exec: failed to run '%s'\n", argv[1]);
     return 1;
 }
@@ -327,15 +331,25 @@ static int shell_execute_command(int argc, char* argv[])
     }
     path[pos] = '\0';
 
-    int ret = _syscall_exec(path);
+    char *new_argv[argc + 1];
+    new_argv[0] = path;
+    for (int i = 1; i < argc; i++) {
+        new_argv[i] = argv[i];
+    }
+    new_argv[argc] = NULL;
+
+    int ret = _syscall_execv(path, new_argv, NULL);
+
     if (ret != 0) {
         printf("Unknown command: %s\n", argv[0]);
         return 127;
     }
     return 0;
 }
-void _start(void)
+int main(int argc, char *argv[])
 {
+    (void)argc;
+    (void)argv;
     printf("\nchales-os shell\n");
     printf("Type 'help' for available commands\n\n");
 
@@ -351,4 +365,5 @@ void _start(void)
             shell_execute_command(argc, argv);
         }
     }
+    return 0;
 }

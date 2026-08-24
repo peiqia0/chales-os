@@ -16,6 +16,87 @@ extern const char _kernel_end;
 // nothing else is currently mapped
 #define ELF_LOAD_LIMIT 0x400000u
 
+static int count_strings(char **arr)
+{
+    if (arr == NULL) return 0;
+    int count = 0;
+    while (arr[count] != NULL) {
+        count++;
+    }
+    return count;
+}
+
+static uint32_t strings_total_size(char **arr, int count)
+{
+    uint32_t total = 0;
+    for (int i = 0; i < count; i++) {
+        total += strlen(arr[i]) + 1;
+    }
+    return total;
+}
+uint32_t elf_build_user_stack(uint32_t stack_base, uint32_t stack_top, char **argv, char **envp) {
+    int argc = count_strings(argv);
+    int envc = count_strings(envp);
+
+    uint32_t total = strings_total_size(argv, argc) + strings_total_size(envp, envc);
+
+    total += (argc + 1) * sizeof(char*);   // argv[] array + NULL terminator
+    total += (envc + 1) * sizeof(char*);   // envp[] array + NULL terminator
+    total += sizeof(uint32_t);              // argc itself
+
+    if (total > (stack_top - stack_base)) {
+        return 0;  // doesn't fit
+    }
+
+    uint32_t cursor = stack_top;
+
+    // Copy string data first
+    char *argv_copied[argc];
+    char *envp_copied[envc];
+
+    for (int i = 0; i < argc; i++) {
+        size_t len = strlen(argv[i]) + 1;
+        cursor -= len;
+        memcpy((void *)(uintptr_t)cursor, argv[i], len);
+        argv_copied[i] = (char *)(uintptr_t)cursor;
+    }
+
+    for (int i = 0; i < envc; i++) {
+        size_t len = strlen(envp[i]) + 1;
+        cursor -= len;
+        memcpy((void *)(uintptr_t)cursor, envp[i], len);
+        envp_copied[i] = (char *)(uintptr_t)cursor;
+    }
+
+    /* Align down to 4 bytes before writing pointer-sized data. */
+    cursor &= ~((uint32_t)sizeof(uint32_t) - 1);
+
+    /* envp[] array, NULL-terminated. Written top-down, so the NULL
+     * terminator goes first (ends up at the highest address). */
+    cursor -= sizeof(char*);
+    *(char **)(uintptr_t)cursor = NULL;
+    for (int i = envc - 1; i >= 0; i--) {
+        cursor -= sizeof(char*);
+        *(char **)(uintptr_t)cursor = envp_copied[i];
+    }
+    uint32_t envp_addr = cursor;
+
+    /* argv[] array, NULL-terminated, same pattern. */
+    cursor -= sizeof(char*);
+    *(char **)(uintptr_t)cursor = NULL;
+    for (int i = argc - 1; i >= 0; i--) {
+        cursor -= sizeof(char*);
+        *(char **)(uintptr_t)cursor = argv_copied[i];
+    }
+    uint32_t argv_addr = cursor;
+
+    /* Finally, argc itself — this is what crt0's _start pops first. */
+    cursor -= sizeof(uint32_t);
+    *(uint32_t *)(uintptr_t)cursor = (uint32_t)argc;
+
+    return cursor;
+}
+
 static int elf_validate(const elf32_ehdr_t *eh, size_t size)
 {
     if (size < sizeof(elf32_ehdr_t)) {
