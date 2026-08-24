@@ -1,12 +1,9 @@
 #include <syscalls.h>
 #include <stdio.h>
 
-
-void _start(void)
+int main(int argc, char *argv[])
 {
     printf("Hello from an ELF-loaded user program!\n");
-    _syscall_exit(0);
-
-    for (;;) {
-    }
+    printf("%s\n", argv[1]);
+    return 0;
 }

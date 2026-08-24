@@ -96,11 +96,6 @@ void irq_handler(struct interrupt_context* int_ctx)
     pic_eoi_master();
 }
 
-
-/* Program break for the (currently: single) running user process. Lives
- * within [_user_heap_start, _user_heap_end), a region paging_initialize()
- * marks PTE_USER. NULL means "not yet initialized". Once this kernel grows
- * multiple processes, this needs to move into a per-process struct. */
 extern const char _user_heap_start;
 extern const char _user_heap_end;
 static uint8_t* user_brk = NULL;
@@ -213,9 +208,7 @@ void syscall_handler(struct interrupt_context* int_ctx)
                 asm volatile("hlt");
             }
             break;
-        case 21: // exec
-        {
-            printk("[SYSCALL] exec(\"%s\")\n", (const char*)arg1);
+        case 21: // execv(path, argv, envp)
             static uint8_t image[RAMFS_MAX_FILESIZE];
             uint32_t entry;
             int fd = ramfs_open((const char*)arg1, 0);
@@ -230,22 +223,27 @@ void syscall_handler(struct interrupt_context* int_ctx)
                 total += (size_t)n;
             }
             ramfs_close(fd);
-            printk("[exec] read %lu bytes from '%s'\n", (unsigned long)total, (const char*)arg1);
             if (elf_load(image, total, &entry) != 0) {
                 int_ctx->eax = (uint32_t)-1;
                 break;
             }
-            printk("[exec] elf_load ok, entry=0x%lx\n", (unsigned long)entry);
+
             #define USER_STACK_TOP  0x2FF000
             #define USER_STACK_SIZE 0x4000
             paging_map_user_range(USER_STACK_TOP - USER_STACK_SIZE, USER_STACK_TOP);
-            uint32_t *stack = kmalloc(4096);
 
-            task_t *task = kmalloc(sizeof(task_t));
-            sched_task_create(entry, USER_STACK_TOP);
+            uint32_t stack_top = elf_build_user_stack(
+                USER_STACK_TOP - USER_STACK_SIZE, USER_STACK_TOP,
+                (char **)arg2, (char **)arg3);
+            if (stack_top == 0) {
+                int_ctx->eax = (uint32_t)-1;
+                break;
+            }
+
+            sched_task_create(entry, stack_top);
             int_ctx->eax = 0;
             break;
-        }
+
         default:
             printk("[SYSCALL] unknown syscall %lu\n", (unsigned long)syscall_num);
             break;

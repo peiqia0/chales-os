@@ -250,16 +250,15 @@ static inline void _syscall_reboot(void)
     );
 }
 
-static inline int _syscall_exec(const char* path)
+static inline int _syscall_execv(const char* path, char** argv, char** envp)
 {
     int ret;
     asm volatile (
         "int $0x80\n\t"
         : "=a"(ret)
-        : "a"(21), "b"(path)
+        : "a"(21), "b"(path), "c"(argv), "d"(envp)
         : "memory"
     );
     return ret;
 }
-
 #endif
