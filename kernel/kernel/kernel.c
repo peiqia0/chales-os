@@ -26,9 +26,6 @@ void kernel_early(void)
 
 void kernel_main(void)
 {
-
-
-
     printk("[IDT] initializing\n");
     idt_initialize();
 
@@ -51,7 +48,6 @@ void kernel_main(void)
     asm volatile("sti");
 
     printk("[KERNEL] initialization complete\n");
-    printk("[sched] initializing\n");
 
     ramfs_init();
 

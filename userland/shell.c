@@ -63,6 +63,25 @@ static int cmd_help(int argc, char* argv[])
     }
     return 0;
 }
+static int redirect(int argc, char* argv[])
+{
+    const char* path = "";
+    path = argv[argc-1];
+    int fd = _syscall_open(path, 1 /* O_CREAT */);
+
+    if (fd < 0) {
+        printf("Error: cannot open '%s'\n", path);
+        return 1;
+    }
+
+    for (int i = 2; i < argc; i++) {
+        _syscall_write(fd, argv[i], (unsigned int)strlen(argv[i]));
+        if (i < argc - 1) {
+            _syscall_write(fd, " ", 1);
+        }
+    }
+
+}
 
 static int cmd_clear(int argc, char* argv[])
 {
@@ -350,6 +369,8 @@ int main(int argc, char *argv[])
 {
     (void)argc;
     (void)argv;
+
+    setvbuf(stdout, NULL, _IONBF, 0);
     printf("\nchales-os shell\n");
     printf("Type 'help' for available commands\n\n");
 

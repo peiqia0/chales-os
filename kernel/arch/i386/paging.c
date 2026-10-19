@@ -2,11 +2,6 @@
 #include <stddef.h>
 #include "paging.h"
 
-/* Simple 4KB paging: one page directory and one page table covering 0..4MiB
- * We identity-map the first 4MiB, marking only the dedicated .user section
- * user-accessible while keeping kernel pages supervisor-only.
- */
-
 /* PDE/PTE flags */
 #define PTE_P 0x1
 #define PTE_RW 0x2
@@ -71,9 +66,6 @@ void paging_initialize(void)
         }
     }
 
-    /* Point first PDE to our first page table. Mark PDE present, rw, user so
-     * page-level user access is governed by PTE user bits.
-     */
     uint32_t pt_phys = (uint32_t)((uintptr_t)page_table0);
     page_directory[0] = pt_phys | PTE_P | PTE_RW | PTE_USER;
 }

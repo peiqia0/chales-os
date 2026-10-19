@@ -6,7 +6,9 @@
 
 #define RAMFS_MAX_FILES 64
 #define RAMFS_MAX_FILENAME 256
-#define RAMFS_MAX_FILESIZE 8192
+
+#define RAMFS_MAX_FILESIZE (256 * 1024)
+#define RAMFS_POOL_SIZE    (768 * 1024)
 
 typedef enum {
     RAMFS_TYPE_FILE,
@@ -19,12 +21,14 @@ typedef struct ramfs_inode {
     char name[RAMFS_MAX_FILENAME];
     uint32_t size;
     uint32_t parent_ino;
-    uint8_t data[RAMFS_MAX_FILESIZE];
+    uint8_t *data;      /* points into the pool; NULL while capacity == 0 */
+    uint32_t capacity;
 } ramfs_inode_t;
 
 typedef struct ramfs_fd {
     uint32_t ino;
     uint32_t offset;
+    uint32_t flags;   /* CHALES_O_* access mode / O_APPEND bits */
 } ramfs_fd_t;
 
 /* Initialize RAMFS */
@@ -35,6 +39,17 @@ int ramfs_open(const char *path, int flags);
 int ramfs_close(int fd);
 int ramfs_read(int fd, void *buf, size_t count);
 int ramfs_write(int fd, const void *buf, size_t count);
+
+/* Newlib-flavoured API. These return a negative CHALES_E* value on failure. */
+struct chales_stat;
+int ramfs_open2(const char *path, int oflags);
+int ramfs_lseek(int fd, int32_t offset, int whence);
+int ramfs_fstat(int fd, struct chales_stat *st);
+int ramfs_stat(const char *path, struct chales_stat *st);
+
+/* Direct view of a file's bytes (valid until the file is written or removed).
+ * Returns NULL if path is not a regular file. */
+const uint8_t *ramfs_file_data(const char *path, size_t *size_out);
 
 /* Directory operations */
 int ramfs_mkdir(const char *path);

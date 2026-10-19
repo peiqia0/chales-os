@@ -26,3 +26,11 @@ export CC="$CC --sysroot=$SYSROOT"
 if echo "$HOST" | grep -Eq -- '-elf($|-)'; then
   export CC="$CC -isystem=$INCLUDEDIR"
 fi
+
+# User programs are built against newlib. NEWLIB_PREFIX is the install prefix
+# of a newlib built for $HOST (it contains $HOST/include and $HOST/lib/libc.a).
+export NEWLIB_PREFIX=${NEWLIB_PREFIX:-$HOME/opt/newlib}
+if [ ! -f "$NEWLIB_PREFIX/$HOST/lib/libc.a" ]; then
+  echo "error: newlib not found at $NEWLIB_PREFIX/$HOST/lib/libc.a (set NEWLIB_PREFIX)" >&2
+  exit 1
+fi

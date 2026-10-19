@@ -1,13 +1,12 @@
 .section .text
 .global _start
 .extern main
-.global exit
+.extern exit
 
 _start:
     pop %eax # argc
     mov %esp, %ebx # argv
-    lea 4(%esp,%eax,4), %edx   # edx = &argv[argc]
-    add $4, %edx # edx = envp[0]
+    lea 4(%esp,%eax,4), %edx   # edx = &envp[0] (one slot past argv's NULL terminator)
 
     push %edx # envp
     push %ebx # argv
@@ -18,11 +17,7 @@ _start:
     push %eax # main's return value
     call exit # should not return
 
-exit:
-    mov 4(%esp), %ebx
-    mov $0, %eax
-    int $0x80
-
+    # exit() does not return
 1:
     hlt
     jmp 1b
