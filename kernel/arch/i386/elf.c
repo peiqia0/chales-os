@@ -68,11 +68,9 @@ uint32_t elf_build_user_stack(uint32_t stack_base, uint32_t stack_top, char **ar
         envp_copied[i] = (char *)(uintptr_t)cursor;
     }
 
-    /* Align down to 4 bytes before writing pointer-sized data. */
+    // Align down to 4 bytes before writing pointer-sized data.
     cursor &= ~((uint32_t)sizeof(uint32_t) - 1);
 
-    /* envp[] array, NULL-terminated. Written top-down, so the NULL
-     * terminator goes first (ends up at the highest address). */
     cursor -= sizeof(char*);
     *(char **)(uintptr_t)cursor = NULL;
     for (int i = envc - 1; i >= 0; i--) {
@@ -81,7 +79,7 @@ uint32_t elf_build_user_stack(uint32_t stack_base, uint32_t stack_top, char **ar
     }
     uint32_t envp_addr = cursor;
 
-    /* argv[] array, NULL-terminated, same pattern. */
+    // argv[] array, NULL-terminated, same pattern.
     cursor -= sizeof(char*);
     *(char **)(uintptr_t)cursor = NULL;
     for (int i = argc - 1; i >= 0; i--) {
@@ -90,7 +88,7 @@ uint32_t elf_build_user_stack(uint32_t stack_base, uint32_t stack_top, char **ar
     }
     uint32_t argv_addr = cursor;
 
-    /* Finally, argc itself — this is what crt0's _start pops first. */
+    // Finally, argc itself — this is what crt0's _start pops first.
     cursor -= sizeof(uint32_t);
     *(uint32_t *)(uintptr_t)cursor = (uint32_t)argc;
 
@@ -148,6 +146,37 @@ static int elf_validate(const elf32_ehdr_t *eh, size_t size)
         return -1;
     }
 
+    return 0;
+}
+
+int elf_extent(const void *image, size_t size, uint32_t *lo_out, uint32_t *hi_out)
+{
+    const uint8_t *bytes = (const uint8_t *)image;
+    const elf32_ehdr_t *eh = (const elf32_ehdr_t *)image;
+
+    if (elf_validate(eh, size) != 0) {
+        return -1;
+    }
+
+    uint32_t lo = 0xFFFFFFFFu, hi = 0;
+    for (uint16_t i = 0; i < eh->e_phnum; i++) {
+        const elf32_phdr_t *ph = (const elf32_phdr_t *)
+            (bytes + eh->e_phoff + (uint32_t)i * eh->e_phentsize);
+        if (ph->p_type != PT_LOAD) {
+            continue;
+        }
+        uint64_t end = (uint64_t)ph->p_vaddr + ph->p_memsz;
+        if (end > ELF_LOAD_LIMIT) {
+            return -1;
+        }
+        if (ph->p_vaddr < lo) lo = ph->p_vaddr;
+        if ((uint32_t)end > hi) hi = (uint32_t)end;
+    }
+    if (hi == 0) {
+        return -1;
+    }
+    *lo_out = lo;
+    *hi_out = hi;
     return 0;
 }
 
@@ -245,22 +274,12 @@ static uint32_t elf_user_stack[ELF_USER_STACK_WORDS]
 
 int elf_exec_file(const char *path)
 {
-    int fd = ramfs_open(path, 0);
-    if (fd < 0) {
+    size_t total = 0;
+    const uint8_t *image = ramfs_file_data(path, &total);
+    if (image == NULL) {
         printk("[elf] cannot open '%s'\n", path);
         return -1;
     }
-
-    // ramfs files can't exceed RAMFS_MAX_FILESIZE
-    // read the whole thing into a static buffer so we don't blow the kernel stack
-    static uint8_t image[RAMFS_MAX_FILESIZE];
-    size_t total = 0;
-    int n;
-    while (total < sizeof(image) &&
-           (n = ramfs_read(fd, image + total, sizeof(image) - total)) > 0) {
-        total += (size_t)n;
-    }
-    ramfs_close(fd);
 
     if (total == 0) {
         printk("[elf] '%s' is empty or unreadable\n", path);

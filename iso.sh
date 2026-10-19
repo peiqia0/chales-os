@@ -13,4 +13,4 @@ menuentry "chales-os" {
 }
 EOF
 grub-mkrescue -o chales-os.iso isodir
-cp chales-os.iso builds/0.5.0.iso
+cp chales-os.iso builds/0.6.0.iso

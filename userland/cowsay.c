@@ -30,14 +30,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <syscalls.h>
 
 ////////////////
 //Functions
 //////
 void printcow(void);
 void displayhelp(void);
-void displaycowlist(void);
 
 ////////////////
 //Variables
@@ -52,38 +50,31 @@ unsigned int nextarg;
 unsigned short skiparg;
 unsigned short thought=0;
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
+
     /*Handle Arguments*/
     if( argc == 1 ) {
         displayhelp();
-        printf("test err 1\n");
         return -1;
     }
     for (counter=1; counter < argc; counter++) {
         if ( !strcmp(argv[counter], "-e") || !strcmp(argv[counter], "--eyes") ) {
             nextarg=(counter + 1);
             if ( strlen(argv[nextarg]) == 1 ) {
-                eyes = argv[nextarg][0];            }
+                strcpy(&eyes, argv[nextarg]);
+            }
             else {
                 displayhelp();
-                printf("test err 2\n");
                 return -1;
             }
         }
         else if ( !strcmp(argv[counter], "-t") || !strcmp(argv[counter], "--thought") ) {
             thought=1;
-            upperbubble = 'O';
-            lowerbubble = 'o';
+            strcpy(&upperbubble, "O");
+            strcpy(&lowerbubble, "o");
         }
         else if ( !strcmp(argv[counter], "-h") || !strcmp(argv[counter], "--help") ) {
             displayhelp();
-            printf("test1\n");
-            return 0;
-        }
-        else if ( !strcmp(argv[counter], "-l") || !strcmp(argv[counter], "--list") ) {
-            displaycowlist();
-            printf("test2\n");
             return 0;
         }
     }
@@ -91,11 +82,7 @@ int main(int argc, char *argv[])
     /* Count characters in non-flag arguments */
     for(counter=1; counter < argc; counter++) {
         skiparg=0;
-        if ( !strcmp(argv[counter], "-c") || !strcmp(argv[counter], "--cow") || !strcmp(argv[counter], "-e") || !strcmp(argv[counter], "--eyes") ) {
-            skiparg=1;
-            counter++;
-        }
-        else if ( !strcmp(argv[counter], "-t") || !strcmp(argv[counter], "--thought") ) {
+        if ( !strcmp(argv[counter], "-t") || !strcmp(argv[counter], "--thought") ) {
             skiparg=1;
         }
         else if (counter < argc && skiparg == 0) {
@@ -104,7 +91,6 @@ int main(int argc, char *argv[])
     }
     if (argscharcount == 0) {
         displayhelp();
-        printf("test err 3\n");
         return -1;
     }
     argscharcount=argscharcount + 1;
@@ -124,11 +110,7 @@ int main(int argc, char *argv[])
 
     for(counter=1; counter < argc; counter++) {
         skiparg=0;
-        if ( !strcmp(argv[counter], "-c") || !strcmp(argv[counter], "--cow") || !strcmp(argv[counter], "-e") || !strcmp(argv[counter], "--eyes") ) {
-            skiparg=1;
-            counter++;
-        }
-        else if ( !strcmp(argv[counter], "-t") || !strcmp(argv[counter], "--thought") ) {
+        if ( !strcmp(argv[counter], "-t") || !strcmp(argv[counter], "--thought") ) {
             skiparg=1;
         }
         else if ( skiparg == 0 ) {
@@ -147,48 +129,7 @@ int main(int argc, char *argv[])
     }
     printf("\n");
     printcow();
-    printf("test2\n");
     return 0;
-}
-
-void displaycowlist(void) {
-    printf("beavis.zen\tBeavis, with Zen philosophy removed.\n\
-bong\tA cow with a bong, from lars@csua.berkeley.edu\n\
-bud-frogs\tThe Budweiser frogs\n\
-bunny\tA cute little wabbit\n\
-cheese\tThe cheese from milk & cheese\n\
-cower\tA cowering cow\n\
-daemon\t4.4 >> 5.4\n\
-dragon-and-cow\tA dragon smiting a cow, possible credit to kube@csua.berkeley.edu\n\
-dragon\tThe Whitespace Dragon\n\
-elephant\tAn elephant out and about\n\
-elephant-in-snake\tDo we need to explain this?\n\
-eyes\tEvil-looking eyes\n\
-flaming-sheep\tThe flaming sheep, contributed by Geordan Rosario (geordan@csua.berkeley.edu)\n\
-ghostbusters\tGhostbusters!\n\
-head-in\tGo stick yer head in a cow.\n\
-hellokitty\tHello Kitty\n\
-kiss\tA lovers' embrace\n\
-kitty\tA kitten of sorts, I think\n\
-koala\tFrom the canonical koala collection\n\
-kosh\tIt's a Kosh Cow!\n\
-luke-koala\tFrom the canonical koala collection\n\
-meow\tA meowing tiger?\n\
-milk\tMilk from Milk and Cheese\n\
-moofasa\tMOOfasa.\n\
-mutilated\tA mutilated cow, from aspolito@csua.berkeley.edu\n\
-ren\tRen\n\
-sheep\tThe non-flaming sheep.\n\
-skeleton\tThis 'Scowleton' brought to you by one of {appel,kube,rowe}@csua.berkeley.edu\n\
-stegosaurus\tA stegosaur with a top hat?\n\
-stimpy\tStimpy!\n\
-three-eyes\tA cow with three eyes, brought to you by dpetrou@csua.berkeley.edu\n\
-turkey\tTurkey!\n\
-turtle\tA mysterious turtle...\n\
-tux\tTuX (c) pborys@p-soft.silesia.linux.org.pl\n\
-vader\tCowth Vader, from geordan@csua.berkeley.edu\n\
-vader-koala\tAnother canonical koala?\n\
-www\tA cow advertising the World Wide Web, from lim@csua.berkeley.edu\n");
 }
 
 void displayhelp(void) {
@@ -204,7 +145,6 @@ Usage:\n\
 Flags:\n\
     -h or --help    - Displays this help text\n\
     -l or --list    - List all cowfiles\n\
-    -c or --cow     - Specify cowfile\n\
     -e or --eyes    - Specify character used for the eyes. Must be ONE character!\n\
     -t or --thought - Thought bubble\n");
 }

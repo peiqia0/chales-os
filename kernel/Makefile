@@ -31,15 +31,6 @@ $(KERNEL_ARCH_OBJS) \
 kernel/kernel.o \
 kernel/ramfs.o \
 user/main.o \
-../libc/stdio/printf.o \
-../libc/stdlib/malloc.o \
-../libc/string/memcpy.o \
-../libc/string/memset.o \
-../libc/string/memmove.o \
-../libc/string/memcmp.o \
-../libc/string/strcmp.o \
-../libc/string/strlen.o \
-
 
 CRTI_OBJ:=$(ARCHDIR)/crti.o
 CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) $(LDFLAGS) -print-file-name=crtbegin.o)

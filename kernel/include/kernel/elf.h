@@ -73,6 +73,10 @@ typedef struct {
 #define PF_W 0x2
 #define PF_R 0x4
 
+// Validates an ELF32 image and reports the lowest/highest virtual address its
+// PT_LOAD segments cover ([lo, hi)). Returns 0 on success, -1 if invalid.
+int elf_extent(const void *image, size_t size, uint32_t *lo_out, uint32_t *hi_out);
+
 // Loads a validated ELF32 executable image already in memory
 int elf_load(const void *image, size_t size, uint32_t *entry_out);
 

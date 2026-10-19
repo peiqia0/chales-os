@@ -30,13 +30,11 @@ LIBK_CPPFLAGS:=$(LIBK_CPPFLAGS) $(KERNEL_ARCH_CPPFLAGS)
 FREEOBJS=\
 $(ARCH_FREEOBJS) \
 stdio/printk.o \
-stdio/printf.o \
 stdio/putchar.o \
 stdio/puts.o \
 stdio/snprintk.o \
 stdlib/abort.o \
 stdlib/kmalloc.o \
-stdlib/malloc.o \
 string/memcmp.o \
 string/memcpy.o \
 string/memmove.o \
@@ -48,24 +46,16 @@ string/strcmp.o \
 string/strncmp.o \
 string/strrchr.o \
 
-HOSTEDOBJS=\
-$(ARCH_HOSTEDOBJS) \
-
-OBJS=\
-$(FREEOBJS) \
-$(HOSTEDOBJS) \
-
 LIBK_OBJS=$(FREEOBJS:.o=.libk.o)
 
-BINARIES=libc.a libk.a # Ready for libc.
+# libk.a is the kernel's own freestanding library. User programs use newlib;
+# libchalessys.a is the syscall layer newlib needs underneath it.
+BINARIES=libk.a libchalessys.a
 
 .PHONY: all clean install install-headers install-libs
 .SUFFIXES: .o .libk.o .c .S
 
 all: $(BINARIES)
-
-libc.a: $(OBJS)
-	$(AR) rcs $@ $(OBJS)
 
 libk.a: $(LIBK_OBJS)
 	$(AR) rcs $@ $(LIBK_OBJS)
@@ -83,9 +73,9 @@ libk.a: $(LIBK_OBJS)
 	$(CC) -MD -c $< -o $@ $(LIBK_CFLAGS) $(LIBK_CPPFLAGS)
 
 clean:
-	rm -f $(BINARIES) *.a
-	rm -f $(OBJS) $(LIBK_OBJS) *.o */*.o */*/*.o
-	rm -f $(OBJS:.o=.d) $(LIBK_OBJS:.o=.d) *.d */*.d */*/*.d
+	rm -f $(BINARIES) *.a newlib/*.o newlib/*.d
+	rm -f $(LIBK_OBJS) *.o */*.o */*/*.o
+	rm -f $(LIBK_OBJS:.o=.d) *.d */*.d */*/*.d
 
 install: install-headers install-libs
 
@@ -97,5 +87,30 @@ install-libs: $(BINARIES)
 	mkdir -p $(DESTDIR)$(LIBDIR)
 	cp $(BINARIES) $(DESTDIR)$(LIBDIR)
 
--include $(OBJS:.o=.d)
 -include $(LIBK_OBJS:.o=.d)
+
+# ---- newlib support ---------------------------------------------------------
+# The syscall layer newlib needs (_write, _sbrk, _open, ...). It is compiled
+# against newlib's headers, so it is not part of the default build. Point
+# NEWLIB_PREFIX at a newlib install (it contains $(HOST)/include and
+# $(HOST)/lib):
+#   make libchalessys.a NEWLIB_PREFIX=$HOME/opt/newlib
+NEWLIB_PREFIX?=
+ifeq ($(NEWLIB_PREFIX),)
+$(error NEWLIB_PREFIX is not set: point it at a newlib install containing $(HOST)/include and $(HOST)/lib)
+endif
+NEWLIB_INCLUDE=$(NEWLIB_PREFIX)/$(HOST)/include
+NEWLIB_OBJS=newlib/newlib_syscalls.o
+
+# -idirafter: newlib's own headers win; only sys/chales_abi.h comes from include/.
+newlib/%.o: newlib/%.c
+	$(CC) -MD -c $< -o $@ -std=gnu11 $(CFLAGS) -D__is_libc -nostdinc -I$(NEWLIB_INCLUDE) -idirafter include -isystem $(shell $(CC) -print-file-name=include)
+
+libchalessys.a: $(NEWLIB_OBJS)
+	$(AR) rcs $@ $(NEWLIB_OBJS)
+
+install-newlib-libs: libchalessys.a
+	mkdir -p $(DESTDIR)$(LIBDIR)
+	cp libchalessys.a $(DESTDIR)$(LIBDIR)
+
+-include $(NEWLIB_OBJS:.o=.d)

@@ -7,7 +7,7 @@
 #define EOF (-1)
 
 int printk(const char* __restrict, ...);
-int printf(const char* __restrict, ...);
+// int printf(const char* __restrict, ...);
 int snprintk(char* __restrict, size_t, const char* __restrict, ...);
 int putchar(int);
 int puts(const char*);
