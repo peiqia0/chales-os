@@ -90,7 +90,7 @@ Then run `nltest` from the shell.
 
 ## License
 
-This project is under the GNU General Public liscence
+This project is under the GNU General Public licence
 
 ## Acknowledgements
 
