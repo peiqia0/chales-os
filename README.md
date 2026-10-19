@@ -58,7 +58,7 @@ This builds the ISO and launches it with `qemu-system-i386`.
 Alternatively, boot the pre-built ISO directly:
 
 ```sh
-qemu-system-i386 -cdrom builds/0.4.1.iso
+qemu-system-i386 -cdrom builds/0.6.0.iso
 ```
 ## Newlib
 
@@ -83,6 +83,7 @@ NEWLIB_PREFIX=$HOME/opt/newlib ./build.sh
 Then run `nltest` from the shell.
 
 ## Plans
+- replace the bloated software that is grub
 - graphics
 - real file system
 - usb
