@@ -11,6 +11,7 @@ This is a a hobby os based on the osdev wiki for the i386 architecture. This pro
 - Interactive shell — command-line interface with built-in commands
 - ELF executable loader — load and runs elf binaries
 - Scheduler - Simple round robin scheduler to make multitasking possible
+- Bootloader - A custom bootloader to load the kernel
 ## Shell Commands
 
 | Command | Description |
@@ -34,7 +35,7 @@ This is a a hobby os based on the osdev wiki for the i386 architecture. This pro
 
 You need an **i686 cross-compiler** (i686-elf-gcc) and the standard build tools. See the [OSDev Wiki cross-compiler guide](https://wiki.osdev.org/GCC_Cross-Compiler) for setup instructions.
 
-You also need a **newlib** built for `i686-elf` (user programs link against it) and `grub-mkrescue`, `xorriso`, and `mtools` to build the ISO. Point the build at newlib with `NEWLIB_PREFIX` (default `$HOME/opt/newlib`, expects `$NEWLIB_PREFIX/i686-elf/lib/libc.a`).
+You also need a **newlib** built for `i686-elf` (user programs link against it) and `xorriso`, and `mtools` to build the ISO. Point the build at newlib with `NEWLIB_PREFIX` (default `$HOME/opt/newlib`, expects `$NEWLIB_PREFIX/i686-elf/lib/libc.a`).
 
 ```sh
 # Install system headers
@@ -83,7 +84,7 @@ NEWLIB_PREFIX=$HOME/opt/newlib ./build.sh
 Then run `nltest` from the shell.
 
 ## Plans
-- replace the bloated software that is grub
+- busybox
 - graphics
 - real file system
 - usb
