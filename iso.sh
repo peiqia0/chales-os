@@ -1,16 +1,12 @@
 #!/bin/sh
 set -e
-. ./build.sh
+. ./image.sh
 
+rm -rf isodir
 mkdir -p isodir
-mkdir -p isodir/boot
-mkdir -p isodir/boot/grub
+cp chales-os.img isodir/chales-os.img
 
-cp sysroot/boot/chales-os.kernel isodir/boot/chales-os.kernel
-cat > isodir/boot/grub/grub.cfg << EOF
-menuentry "chales-os" {
-	multiboot /boot/chales-os.kernel
-}
-EOF
-grub-mkrescue -o chales-os.iso isodir
-cp chales-os.iso builds/0.6.0.iso
+xorriso -as mkisofs -quiet -V CHALES_OS \
+  -b chales-os.img -no-emul-boot -boot-load-size 16 -boot-info-table \
+  -o chales-os.iso isodir
+echo "built chales-os.iso"

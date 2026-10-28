@@ -6,3 +6,5 @@ sysroot
 *.d
 *.kernel
 *.log
+*.bin
+*.img
