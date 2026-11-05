@@ -6,6 +6,10 @@
 
 .equ MAX_PHDRS, 16
 
+.equ MBI_ADDR, 0x1000 # multiboot info struct (116 bytes)
+.equ MMAP_ADDR, 0x1100 # memory map entries (stride 24)
+.equ MMAP_MAX, 64
+
 .section .text
 .global _start
 _start:
@@ -35,7 +39,7 @@ _start:
     mov dword ptr [bounce_units], BOUNCE_CD_SECTORS
     mov dword ptr [hdr_units], 2
 sector_size_known:
-
+    call detect_memory
     call enable_a20
     call enter_unreal
 
@@ -117,7 +121,7 @@ pm_entry:
     mov ss, ax
     mov esp, 0x7C00
     mov eax, 0x2BADB002
-    xor ebx, ebx
+    mov ebx, MBI_ADDR
     mov edx, [entry]
     jmp edx
 
@@ -355,6 +359,53 @@ a20_wrapped:
 
 
 # Text output and errors
+detect_memory:
+    # zero the info struct
+    mov edi, MBI_ADDR
+    mov ecx, 116/4
+    xor eax, eax
+    rep stos dword ptr es:[edi], eax
+
+    xor ebx, ebx # continuation value
+    mov bp, offset 0 # entry count
+    mov di, MMAP_ADDR
+e820_next:
+    mov dword ptr [di], 20          # multiboot 'size' field
+    add di, 4                       # BIOS writes the 20-byte entry here
+    mov eax, 0xE820
+    mov edx, 0x534D4150             # 'SMAP'
+    mov ecx, 20
+    int 0x15
+    jc e820_end                     # CF on first call = unsupported, later = done
+    cmp eax, 0x534D4150
+    jne e820_bad
+    mov eax, [di + 8]               # length low
+    or  eax, [di + 12]              # length high
+    jz  e820_skip                   # zero-length entry: ignore it
+e820_keep:
+    add di, 20
+    inc bp
+    cmp bp, MMAP_MAX
+    jae e820_end
+    test ebx, ebx
+    jnz e820_next
+    jmp e820_end
+e820_skip:
+    sub di, 4 # reuse this slot
+    test ebx, ebx
+    jnz e820_next
+e820_end:
+    test bp, bp
+    jz e820_bad
+    movzx eax, bp
+    imul eax, eax, 24
+    mov dword ptr [MBI_ADDR + 44], eax # mmap_length
+    mov dword ptr [MBI_ADDR + 48], MMAP_ADDR # mmap_addr
+    mov dword ptr [MBI_ADDR], 1 << 6 # flags: mmap valid
+    ret
+e820_bad:
+    mov si, offset msg_mmap
+    jmp fatal
 
 puts:
     lodsb
@@ -419,7 +470,7 @@ hang:
 
 
 # Data
-
+msg_mmap:   .asciz "\r\nBios memory map (E820) failed."
 msg_banner: .asciz "chales-os bootloader\r\nLoading kernel... "
 msg_jump:   .asciz "ok\r\n"
 msg_disk:   .asciz "\r\ndisk read error"

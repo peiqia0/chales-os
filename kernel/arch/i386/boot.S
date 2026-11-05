@@ -32,7 +32,8 @@ kernel_stack_top:
 .type _start, @function
 _start:
 	movl $stack_top, %esp
-
+	movl %eax, %esi # boot magic (callee-saved, survives kernel_early/_init)
+	movl %ebx, %edi # boot info pointer
 	# Initialize TSS.esp0 with kernel stack for Ring 3 returns
 	# tss.esp0 is at offset 4 from tss base
 	movl $kernel_stack_top, %eax
@@ -80,8 +81,10 @@ _start:
 	call _init
 
 	# Transfer control to the main kernel.
+	pushl %edi # arg 2: mbi
+	pushl %esi # arg 1: magic
 	call kernel_main
-
+	addl $8, %esp
 	# Hang if kernel_main unexpectedly returns.
 	cli
 .Lhang:

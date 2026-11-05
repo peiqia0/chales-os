@@ -255,7 +255,6 @@ static int cmd_exec(int argc, char* argv[])
     new_argv[argc - 1] = NULL;
 
     _syscall_execv(argv[1], new_argv, NULL);
-    printf("exec: failed to run '%s'\n", argv[1]);
     return 1;
 }
 
