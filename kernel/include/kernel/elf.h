@@ -80,7 +80,5 @@ int elf_extent(const void *image, size_t size, uint32_t *lo_out, uint32_t *hi_ou
 // Loads a validated ELF32 executable image already in memory
 int elf_load(const void *image, size_t size, uint32_t *entry_out);
 
-// Convenience wrapper: reads `path` from ramfs, validates + loads it with elf_load()
-int elf_exec_file(const char *path);
 
 #endif

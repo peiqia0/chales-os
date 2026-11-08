@@ -77,7 +77,6 @@ uint32_t elf_build_user_stack(uint32_t stack_base, uint32_t stack_top, char **ar
         cursor -= sizeof(char*);
         *(char **)(uintptr_t)cursor = envp_copied[i];
     }
-    uint32_t envp_addr = cursor;
 
     // argv[] array, NULL-terminated, same pattern.
     cursor -= sizeof(char*);
@@ -271,31 +270,3 @@ int elf_load(const void *image, size_t size, uint32_t *entry_out)
 #define ELF_USER_STACK_WORDS (4096 / sizeof(uint32_t))
 static uint32_t elf_user_stack[ELF_USER_STACK_WORDS]
     __attribute__((aligned(16), section(".user")));
-
-int elf_exec_file(const char *path)
-{
-    size_t total = 0;
-    const uint8_t *image = ramfs_file_data(path, &total);
-    if (image == NULL) {
-        printk("[elf] cannot open '%s'\n", path);
-        return -1;
-    }
-
-    if (total == 0) {
-        printk("[elf] '%s' is empty or unreadable\n", path);
-        return -1;
-    }
-
-    uint32_t entry;
-    if (elf_load(image, total, &entry) != 0) {
-        printk("[elf] failed to load '%s'\n", path);
-        return -1;
-    }
-
-    uint32_t stack_top = (uint32_t)(uintptr_t)&elf_user_stack[ELF_USER_STACK_WORDS];
-
-    printk("[elf] executing '%s' (entry=0x%lx)\n", path, (unsigned long)entry);
-    enter_user_mode_at(entry, stack_top); // does not return
-
-    return 0;
-}

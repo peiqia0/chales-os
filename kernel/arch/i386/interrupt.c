@@ -44,8 +44,15 @@ void isr_handler(struct interrupt_context* int_ctx)
                     (unsigned long)int_ctx->int_no,
                     (unsigned long)int_ctx->err_code,
                     (unsigned long)int_ctx->eip);
-
-    for(;;); // halt on exception for safety
+    uint32_t sig = 9;
+    task_t *target = sched_find_task(current_task->pid);
+    if ((int_ctx->cs & 3) == 3) {
+        /* user-mode fault: kill the task */
+        sched_task_exit(target, (int)sig);
+    } else {
+        /* kernel-mode fault: panic */
+        for (;;);
+    }
 }
 
 void page_fault_handler(struct interrupt_context* int_ctx)
@@ -57,7 +64,17 @@ void page_fault_handler(struct interrupt_context* int_ctx)
            fault_address,
            int_ctx->err_code,
            int_ctx->eip);
-    for(;;); // halt on page fault
+    uint32_t sig = 9;
+    task_t *target = sched_find_task(current_task->pid);
+    if ((int_ctx->cs & 3) == 3) {
+        /* user-mode fault: kill the task */
+        sched_task_exit(target, (int)sig);
+    } else {
+        /* kernel-mode fault: panic */
+        for (;;);
+    }
+
+    // for(;;); // halt on page fault
 }
 
 void irq_handler(struct interrupt_context* int_ctx)

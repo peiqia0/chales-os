@@ -55,8 +55,6 @@ static void ramfs_add_binary(const char *path, const void *data, size_t size);
 
 static void ramfs_populate(void)
 {
-    int fd;
-
     // Make a programs directory
     ramfs_mkdir("/bin");
     ramfs_add_binary("/bin/hello", hello_elf, hello_elf_len);
@@ -243,6 +241,10 @@ int ramfs_open(const char *path, int flags)
                 return -1; /* parent directory doesn't exist */
             }
 
+            if (name[0] == '\0' || strlen(name) >= RAMFS_MAX_FILENAME) {
+                return -1; /* empty or too-long name */
+            }
+
             ramfs_inodes[ino].ino = ramfs_next_inode++;
             ramfs_inodes[ino].type = RAMFS_TYPE_FILE;
             strcpy(ramfs_inodes[ino].name, name);
@@ -364,7 +366,7 @@ int ramfs_write(int fd, const void *buf, size_t count)
     if (file_fd->offset >= RAMFS_MAX_FILESIZE) {
         return count == 0 ? 0 : -CHALES_ENOSPC;
     }
-    if (file_fd->offset + count > RAMFS_MAX_FILESIZE) {
+    if (count > RAMFS_MAX_FILESIZE - file_fd->offset) {
         count = RAMFS_MAX_FILESIZE - file_fd->offset;
     }
     if (count == 0) {
@@ -544,7 +546,9 @@ int ramfs_mkdir(const char *path)
 
     char dirbuf[RAMFS_MAX_FILENAME];
     const char *name = ramfs_split_path(path, dirbuf, sizeof(dirbuf));
-
+    if (name[0] == '\0' || strlen(name) >= RAMFS_MAX_FILENAME) {
+        return -1;                       /* empty or too-long name */
+    }
     int32_t parent_ino = ramfs_resolve_dir(dirbuf);
     if (parent_ino == -1) {
         return -1; /* parent directory doesn't exist */

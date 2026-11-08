@@ -68,6 +68,11 @@ void terminal_putchar(char c)
 		{
 			terminal_column--;
 			terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
+		}else
+		{
+    		terminal_column = VGA_WIDTH - 1;
+   			terminal_row--;
+    		terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
 		}
 	}
 	else

@@ -63,25 +63,6 @@ static int cmd_help(int argc, char* argv[])
     }
     return 0;
 }
-static int redirect(int argc, char* argv[])
-{
-    const char* path = "";
-    path = argv[argc-1];
-    int fd = _syscall_open(path, 1 /* O_CREAT */);
-
-    if (fd < 0) {
-        printf("Error: cannot open '%s'\n", path);
-        return 1;
-    }
-
-    for (int i = 2; i < argc; i++) {
-        _syscall_write(fd, argv[i], (unsigned int)strlen(argv[i]));
-        if (i < argc - 1) {
-            _syscall_write(fd, " ", 1);
-        }
-    }
-
-}
 
 static int cmd_clear(int argc, char* argv[])
 {
@@ -284,7 +265,9 @@ static int shell_read_line(char* buffer, size_t max_size)
             printf("%c", c);
         }
     }
-
+    if (strlen(buffer) == (int)max_size - 1) {
+        return -1;
+    }
     buffer[index] = '\0';
     return index;
 }
@@ -376,13 +359,15 @@ int main(int argc, char *argv[])
     while (1) {
         printf("> ");
 
-        shell_read_line(shell_input_buffer, SHELL_BUFFER_SIZE);
+        if (shell_read_line(shell_input_buffer, SHELL_BUFFER_SIZE) != -1){
+            char* argv[SHELL_MAX_ARGS];
+            int argc = shell_parse_command(shell_input_buffer, argv, SHELL_MAX_ARGS);
 
-        char* argv[SHELL_MAX_ARGS];
-        int argc = shell_parse_command(shell_input_buffer, argv, SHELL_MAX_ARGS);
-
-        if (argc > 0) {
-            shell_execute_command(argc, argv);
+            if (argc > 0) {
+                shell_execute_command(argc, argv);
+            }
+        } else {
+            printf("\nstring buffer exceeded \n");
         }
     }
     return 0;

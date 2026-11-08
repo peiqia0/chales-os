@@ -58,7 +58,7 @@ static kmalloc_metadata_t* find_free_block(size_t size)
 {
 	kmalloc_metadata_t* block = heap_base;
 
-	while ((char*)block < &_heap_end) {
+	while ((char*)block <= &_heap_end) {
 		if (block->magic != KMALLOC_MAGIC) {
 			return NULL;
 		}
@@ -127,6 +127,13 @@ void* kmalloc(size_t size)
 			return NULL;
 		}
 	} else {
+	    if (block->size >= size + KMALLOC_METADATA_SIZE + 16) {
+            kmalloc_metadata_t *rest = (kmalloc_metadata_t *)((char *)(block + 1) + size);
+            rest->size = block->size - size - KMALLOC_METADATA_SIZE;
+            rest->magic = KMALLOC_MAGIC; rest->is_free = 1;
+            block->size = size;
+            if (block == heap_ptr) heap_ptr = rest;
+        }
 		block->is_free = 0;
 	}
 

@@ -19,7 +19,6 @@
 extern void gdt_set_tss_base(void);
 extern uint8_t stack_bottom[];
 extern uint8_t stack_top[];
-#define MIN_RAM_BYTES (4u * 1024 * 1024)
 
 void kernel_early(void)
 {
